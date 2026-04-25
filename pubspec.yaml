@@ -1,0 +1,40 @@
+name: fitness_app
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.5
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Icone per stile iOS
+  cupertino_icons: ^1.0.8
+
+  # --- AGGIUNTI DA NOI ---
+  # Il motore del database e autenticazione
+  supabase_flutter: ^2.6.0
+
+  # Gestione date e formattazione (es. dd/MM/yyyy)
+  intl: ^0.19.0
+
+  # Per aprire i link dei video tutorial
+  url_launcher: ^6.3.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # Suggerimenti per mantenere il codice pulito
+  flutter_lints: ^3.0.0
+
+flutter:
+  # Abilita le icone Material Design (essenziale)
+  uses-material-design: true
+
+  # Se avrai immagini in futuro, le aggiungerai qui sotto
+  # assets:
+  #   - assets/images/ logo.png
