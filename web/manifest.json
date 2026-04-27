@@ -1,6 +1,6 @@
 {
-    "name": "fitness_app",
-    "short_name": "fitness_app",
+    "name": "DottBertoliniPT",
+    "short_name": "DottBertoliniPT",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
