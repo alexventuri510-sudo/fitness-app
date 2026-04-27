@@ -7,7 +7,7 @@ import 'services/database_service.dart';
 import 'pagine/login_view.dart';
 import 'pagine/register_view.dart';
 import 'pagine/recupero_password_view.dart';
-import 'pagine/nuova_password_view.dart'; // <--- AGGIUNTO
+import 'pagine/nuova_password_view.dart';
 import 'pagine/pt_home_view.dart';
 import 'pagine/pt_profilo_view.dart';
 import 'pagine/aggiungi_atleta_view.dart';
@@ -62,23 +62,38 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     _checkAuthIniziale();
-    _ascoltaRecuperoPassword(); // <--- AGGIUNTO
+    _ascoltaRecuperoPassword();
   }
 
-  // --- LOGICA RECUPERO PASSWORD ---
+  // --- LOGICA RECUPERO PASSWORD AGGIORNATA ---
   void _ascoltaRecuperoPassword() {
     Supabase.instance.client.auth.onAuthStateChange.listen((data) {
       final AuthChangeEvent event = data.event;
       if (event == AuthChangeEvent.passwordRecovery) {
-        setState(() {
-          _schermataAttuale = NuovaPasswordView(vaiALogin: _impostaLogin);
-        });
+        // Forza la navigazione sulla pagina NuovaPassword e pulisce tutto il resto
+        navigatorKey.currentState?.pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (context) => NuovaPasswordView(vaiALogin: _impostaLogin),
+          ),
+          (route) => false,
+        );
       }
     });
   }
 
+  // --- LOGICA CHECK INIZIALE AGGIORNATA ---
   Future<void> _checkAuthIniziale() async {
+    // Aspettiamo un breve istante per dare tempo al sistema di intercettare il link di recupero
+    await Future.delayed(const Duration(milliseconds: 500));
+
     final session = Supabase.instance.client.auth.currentSession;
+
+    // Se l'URL contiene informazioni di recupero password, non caricare la Home qui.
+    // Ci penserà l'ascoltatore _ascoltaRecuperoPassword()
+    if (Uri.base.toString().contains('type=recovery')) {
+      return;
+    }
+
     if (session == null) {
       _impostaLogin();
     } else {
