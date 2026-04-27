@@ -120,6 +120,10 @@ class _AtletaModificaDettaglioEsercizioViewState
     List<String> pesiScorsi = (dati['series_weights_scorsi']?.toString() ?? "")
         .split(',');
 
+    // Logica navigazione
+    bool isPrimo = widget.indiceAttuale == 0;
+    bool isUltimo = widget.indiceAttuale == widget.listaEsercizi.length - 1;
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -337,64 +341,86 @@ class _AtletaModificaDettaglioEsercizioViewState
 
                 const SizedBox(height: 30),
 
-                // NAVIGAZIONE
+                // NAVIGAZIONE AGGIORNATA
                 Row(
                   children: [
+                    // Tasto Precedente: compare solo se non è il primo esercizio
                     Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: widget.indiceAttuale > 0
-                            ? () {
+                      child: !isPrimo
+                          ? ElevatedButton.icon(
+                              onPressed: () {
                                 _eseguiSalvataggio();
                                 widget.cambiaEsercizio(
                                   widget.indiceAttuale - 1,
                                 );
                                 setState(() => _inizializzaCampi());
-                              }
-                            : null,
-                        icon: const Icon(Icons.chevron_left),
-                        label: const Text("PRECEDENTE"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blueGrey[800],
-                          foregroundColor: Colors.white,
-                          disabledBackgroundColor: Colors.grey[200],
-                          padding: const EdgeInsets.symmetric(vertical: 15),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
+                              },
+                              icon: const Icon(Icons.chevron_left),
+                              label: const Text("PRECEDENTE"),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blueGrey[800],
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 15,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            )
+                          : const SizedBox.shrink(),
                     ),
-                    const SizedBox(width: 15),
+
+                    if (!isPrimo && !isUltimo) const SizedBox(width: 15),
+
+                    // Tasto Successivo o Termina Allenamento
                     Expanded(
-                      child: ElevatedButton(
-                        onPressed:
-                            widget.indiceAttuale <
-                                widget.listaEsercizi.length - 1
-                            ? () {
+                      child: isUltimo
+                          ? ElevatedButton.icon(
+                              onPressed: () {
+                                _eseguiSalvataggio();
+                                Navigator.of(context).pop(true);
+                              },
+                              icon: const Icon(Icons.check_circle_outline),
+                              label: const Text("TERMINA ALLENAMENTO"),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 15,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            )
+                          : ElevatedButton(
+                              onPressed: () {
                                 _eseguiSalvataggio();
                                 widget.cambiaEsercizio(
                                   widget.indiceAttuale + 1,
                                 );
                                 setState(() => _inizializzaCampi());
-                              }
-                            : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          foregroundColor: Colors.white,
-                          disabledBackgroundColor: Colors.grey[200],
-                          padding: const EdgeInsets.symmetric(vertical: 15),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text("SUCCESSIVO"),
-                            Icon(Icons.chevron_right),
-                          ],
-                        ),
-                      ),
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 15,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text("SUCCESSIVO"),
+                                  SizedBox(width: 5),
+                                  Icon(Icons.chevron_right),
+                                ],
+                              ),
+                            ),
                     ),
                   ],
                 ),

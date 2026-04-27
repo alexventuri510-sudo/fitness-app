@@ -27,33 +27,33 @@ class AtletaPianoXView extends StatefulWidget {
 class _AtletaPianoXViewState extends State<AtletaPianoXView> {
   List<dynamic> _esercizi = [];
   bool _isLoading = true;
-  String _titoloAllenamento = "SESSIONE DI ALLENAMENTO";
+  String _titoloGiorno = "";
+  String _dataInizioSottotitolo = "";
 
   @override
   void initState() {
     super.initState();
-    _preparaTitolo();
+    _preparaDate();
     _caricaEsercizi();
   }
 
-  void _preparaTitolo() {
+  void _preparaDate() {
     if (widget.dataPianoStr != null && widget.dataPianoStr!.isNotEmpty) {
       try {
         DateTime dataPiano = DateTime.parse(widget.dataPianoStr!.split("T")[0]);
-        DateTime ora = DateTime.now();
-        DateTime oggi = DateTime(ora.year, ora.month, ora.day);
-        DateTime domani = oggi.add(const Duration(days: 1));
 
-        if (dataPiano.isAtSameMomentAs(oggi)) {
-          _titoloAllenamento = "Allenamento di oggi";
-        } else if (dataPiano.isAtSameMomentAs(domani)) {
-          _titoloAllenamento = "Allenamento di domani";
-        } else {
-          _titoloAllenamento =
-              "Allenamento del ${DateFormat('dd/MM/yyyy').format(dataPiano)}";
-        }
+        // Formattazione Giorno Settimana (Lunedì, Martedì...)
+        String giornoSettimana = DateFormat(
+          'EEEE',
+          'it_IT',
+        ).format(dataPiano).toUpperCase();
+        String dataFormattata = DateFormat('dd/MM/yyyy').format(dataPiano);
+
+        _titoloGiorno = "ALLENAMENTO DI $giornoSettimana DEL $dataFormattata";
+        _dataInizioSottotitolo = "Allenamento iniziato il $dataFormattata";
       } catch (e) {
-        _titoloAllenamento = "Allenamento programmato";
+        _titoloGiorno = "SESSIONE DI ALLENAMENTO";
+        _dataInizioSottotitolo = "";
       }
     }
   }
@@ -107,7 +107,7 @@ class _AtletaPianoXViewState extends State<AtletaPianoXView> {
         children: [
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 15),
             decoration: BoxDecoration(
               color: Colors.blue.shade50,
               border: Border(bottom: BorderSide(color: Colors.blue.shade100)),
@@ -115,23 +115,35 @@ class _AtletaPianoXViewState extends State<AtletaPianoXView> {
             child: Column(
               children: [
                 Text(
-                  _titoloAllenamento.toUpperCase(),
+                  _titoloGiorno,
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.blue.shade700,
                     fontWeight: FontWeight.w800,
-                    fontSize: 10,
-                    letterSpacing: 1.2,
+                    fontSize: 11,
+                    letterSpacing: 0.5,
                   ),
                 ),
-                const SizedBox(height: 5),
+                const SizedBox(height: 8),
                 Text(
                   "SETTIMANA ${widget.settimana}",
                   style: const TextStyle(
-                    fontSize: 22,
+                    fontSize: 24,
                     fontWeight: FontWeight.w900,
                     color: Colors.black,
                   ),
                 ),
+                if (_dataInizioSottotitolo.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    _dataInizioSottotitolo,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.blueGrey.shade600,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -159,10 +171,14 @@ class _AtletaPianoXViewState extends State<AtletaPianoXView> {
   }
 
   Widget _buildEsercizioCard(Map<String, dynamic> es, int index) {
+    // Controllo se l'atleta ha inserito dati (pesi o note)
     final String pesiSalvati = es['series_weights_atleta'] ?? "";
-    final bool isCompletato = pesiSalvati
-        .split(',')
-        .any((v) => v.trim().isNotEmpty);
+    final String noteAtleta = es['note_atleta'] ?? "";
+
+    // Il pulsante diventa verde se ci sono pesi inseriti o se la nota non è vuota
+    final bool isCompletato =
+        pesiSalvati.split(',').any((v) => v.trim().isNotEmpty) ||
+        noteAtleta.trim().isNotEmpty;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -171,8 +187,9 @@ class _AtletaPianoXViewState extends State<AtletaPianoXView> {
         borderRadius: BorderRadius.circular(15),
         border: Border.all(
           color: isCompletato
-              ? Colors.green.shade200
+              ? Colors.green.shade300
               : Colors.black.withOpacity(0.08),
+          width: isCompletato ? 2 : 1,
         ),
         boxShadow: [
           BoxShadow(
@@ -183,10 +200,26 @@ class _AtletaPianoXViewState extends State<AtletaPianoXView> {
         ],
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        title: Text(
-          "${index + 1}. ${es['exercise_name']?.toString().toUpperCase() ?? 'ESERCIZIO'}",
-          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        title: RichText(
+          text: TextSpan(
+            style: const TextStyle(color: Colors.black, fontSize: 14),
+            children: [
+              TextSpan(
+                text: "${index + 1}) ",
+                style: const TextStyle(
+                  fontWeight: FontWeight.w900,
+                  color: Colors.blue,
+                ),
+              ),
+              TextSpan(
+                text:
+                    es['exercise_name']?.toString().toUpperCase() ??
+                    'ESERCIZIO',
+                style: const TextStyle(fontWeight: FontWeight.w900),
+              ),
+            ],
+          ),
         ),
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 4),
@@ -195,33 +228,34 @@ class _AtletaPianoXViewState extends State<AtletaPianoXView> {
             style: const TextStyle(
               color: Colors.blueGrey,
               fontWeight: FontWeight.w500,
+              fontSize: 13,
             ),
           ),
         ),
-        trailing: ElevatedButton(
-          onPressed: () async {
-            // 1. Aspetta la chiusura della pagina dettaglio
-            await widget.vaiADettaglioEsercizio(
-              _esercizi,
-              index,
-              widget.settimana,
-            );
-
-            // 2. Appena l'utente torna indietro, ricarica i dati freschi dal DB
-            _caricaEsercizi();
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: isCompletato ? Colors.green : Colors.black,
-            foregroundColor: Colors.white,
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+        trailing: SizedBox(
+          width: 90,
+          child: ElevatedButton(
+            onPressed: () async {
+              await widget.vaiADettaglioEsercizio(
+                _esercizi,
+                index,
+                widget.settimana,
+              );
+              _caricaEsercizi();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: isCompletato ? Colors.green : Colors.black,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              padding: EdgeInsets.zero,
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-          ),
-          child: Text(
-            isCompletato ? "VEDI/MOD" : "INIZIA",
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+            child: Text(
+              isCompletato ? "MODIFICA" : "INIZIA",
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+            ),
           ),
         ),
       ),

@@ -183,13 +183,36 @@ class _AtletaListaEserciziViewState extends State<AtletaListaEserciziView> {
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        title: Text(
-          "${index + 1}. ${es['exercise_name']?.toString().toUpperCase() ?? 'ESERCIZIO'}",
-          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
+        title: RichText(
+          text: TextSpan(
+            style: const TextStyle(
+              color: Colors.black,
+              fontSize: 14,
+              fontFamily: 'Roboto', // O il font predefinito del tuo progetto
+            ),
+            children: [
+              TextSpan(
+                text: "${index + 1}) ",
+                style: const TextStyle(
+                  fontWeight: FontWeight.w900,
+                  color: Colors.black,
+                ),
+              ),
+              TextSpan(
+                text:
+                    es['exercise_name']?.toString().toUpperCase() ??
+                    'ESERCIZIO',
+                style: const TextStyle(fontWeight: FontWeight.w900),
+              ),
+            ],
+          ),
         ),
-        subtitle: Text(
-          "Target: ${es['sets_reps'] ?? '-'}",
-          style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(
+            "Target: ${es['sets_reps'] ?? '-'}",
+            style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+          ),
         ),
         trailing: const Icon(
           Icons.arrow_forward_ios,

@@ -35,8 +35,9 @@ class DettaglioEsercizioView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (listaEsercizi.isEmpty)
+    if (listaEsercizi.isEmpty) {
       return const Scaffold(body: Center(child: Text("Nessun dato")));
+    }
 
     final dati = listaEsercizi[indiceAttuale];
 
@@ -62,12 +63,15 @@ class DettaglioEsercizioView extends StatelessWidget {
         .toString()
         .split(',');
 
+    // Logica per la visibilità dei pulsanti
+    bool isPrimo = indiceAttuale == 0;
+    bool isUltimo = indiceAttuale == listaEsercizi.length - 1;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        // MODIFICA 3: Freccia blu verso sx
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back_ios_new,
@@ -140,7 +144,7 @@ class DettaglioEsercizioView extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // SCHEDA 2: PERFORMANCE ATLETA (MODIFICA 4: RIMOSSO GIALLO)
+            // SCHEDA 2: PERFORMANCE ATLETA
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
@@ -175,7 +179,6 @@ class DettaglioEsercizioView extends StatelessWidget {
                   ),
                   const SizedBox(height: 15),
 
-                  // Tabella Intestazione
                   Row(
                     children: [
                       _headerCell("Serie", 1),
@@ -186,7 +189,6 @@ class DettaglioEsercizioView extends StatelessWidget {
                   ),
                   const Divider(height: 20),
 
-                  // Generazione righe per ogni serie
                   for (int i = 0; i < nSerie; i++)
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -262,7 +264,6 @@ class DettaglioEsercizioView extends StatelessWidget {
             ),
             const SizedBox(height: 25),
 
-            // SEZIONE VIDEO
             if (linkVideo.isNotEmpty)
               SizedBox(
                 width: double.infinity,
@@ -283,51 +284,65 @@ class DettaglioEsercizioView extends StatelessWidget {
 
             const SizedBox(height: 30),
 
-            // NAVIGAZIONE (MODIFICA 2: STESSA GRAFICA ATLETA)
+            // NAVIGAZIONE AGGIORNATA
             Row(
               children: [
+                // PRECEDENTE
                 Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: indiceAttuale > 0
-                        ? () => cambiaEsercizio(indiceAttuale - 1)
-                        : null,
-                    icon: const Icon(Icons.chevron_left),
-                    label: const Text("PRECEDENTE"),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueGrey[800],
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor: Colors.grey[200],
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
+                  child: !isPrimo
+                      ? ElevatedButton.icon(
+                          onPressed: () => cambiaEsercizio(indiceAttuale - 1),
+                          icon: const Icon(Icons.chevron_left),
+                          label: const Text("PRECEDENTE"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blueGrey[800],
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        )
+                      : const SizedBox.shrink(),
                 ),
-                const SizedBox(width: 15),
+
+                if (!isPrimo && !isUltimo) const SizedBox(width: 15),
+
+                // SUCCESSIVO o TORNA ALLA LISTA ESERCIZI
                 Expanded(
-                  child: ElevatedButton(
-                    onPressed: indiceAttuale < listaEsercizi.length - 1
-                        ? () => cambiaEsercizio(indiceAttuale + 1)
-                        : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor: Colors.grey[200],
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text("SUCCESSIVO"),
-                        SizedBox(width: 5),
-                        Icon(Icons.chevron_right),
-                      ],
-                    ),
-                  ),
+                  child: isUltimo
+                      ? ElevatedButton.icon(
+                          onPressed: vaiIndietro, // Torna alla lista
+                          icon: const Icon(Icons.list_alt_rounded),
+                          label: const Text("TORNA ALLA LISTA ESERCIZI"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        )
+                      : ElevatedButton(
+                          onPressed: () => cambiaEsercizio(indiceAttuale + 1),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text("SUCCESSIVO"),
+                              SizedBox(width: 5),
+                              Icon(Icons.chevron_right),
+                            ],
+                          ),
+                        ),
                 ),
               ],
             ),

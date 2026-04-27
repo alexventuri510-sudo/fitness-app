@@ -88,7 +88,6 @@ class _EserciziListaViewState extends State<EserciziListaView> {
     await DatabaseService.spostaEsercizio(idTarget.toString(), index);
   }
 
-  // --- POPUP CONFERMA COPIA ---
   void _confermaCopiaSettimana() {
     showDialog(
       context: context,
@@ -389,12 +388,25 @@ class _EserciziListaViewState extends State<EserciziListaView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // --- AGGIUNTA NUMERAZIONE QUI ---
-                Text(
-                  "${index + 1}) ${es['exercise_name']?.toString().toUpperCase() ?? "ESERCIZIO"}",
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                RichText(
+                  text: TextSpan(
+                    style: const TextStyle(color: Colors.black, fontSize: 14),
+                    children: [
+                      TextSpan(
+                        text: "${index + 1}) ",
+                        style: const TextStyle(
+                          fontWeight:
+                              FontWeight.w900, // Più marcato per il numero
+                          color: Colors.blue, // Numero in blu per risaltare
+                        ),
+                      ),
+                      TextSpan(
+                        text:
+                            (es['exercise_name']?.toString().toUpperCase() ??
+                            "ESERCIZIO"),
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 4),

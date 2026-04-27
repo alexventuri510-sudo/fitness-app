@@ -70,12 +70,15 @@ class AtletaDettaglioEsercizioView extends StatelessWidget {
         .where((s) => s.isNotEmpty)
         .toList();
 
+    // Logica per la visibilità dei pulsanti
+    bool isPrimo = indiceAttuale == 0;
+    bool isUltimo = indiceAttuale == listaEsercizi.length - 1;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        // FRECCIA BLU RICHIESTA
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back_ios_new,
@@ -95,7 +98,6 @@ class AtletaDettaglioEsercizioView extends StatelessWidget {
         centerTitle: true,
       ),
       body: SingleChildScrollView(
-        // Rimosse animazioni: il cambio di indice aggiorna direttamente la UI
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,7 +118,7 @@ class AtletaDettaglioEsercizioView extends StatelessWidget {
                     nome,
                     style: const TextStyle(
                       fontSize: 22,
-                      fontWeight: FontWeight.w900, // CORRETTO QUI
+                      fontWeight: FontWeight.w900,
                       color: Colors.blue,
                     ),
                   ),
@@ -150,7 +152,7 @@ class AtletaDettaglioEsercizioView extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // --- SCHEDA DATI ATLETA (DESIGN PULITO, NO GIALLO) ---
+            // --- SCHEDA DATI ATLETA ---
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
@@ -280,47 +282,65 @@ class AtletaDettaglioEsercizioView extends StatelessWidget {
 
             const SizedBox(height: 30),
 
-            // --- NAVIGAZIONE (ESTETICA RICHIESTA) ---
+            // --- NAVIGAZIONE AGGIORNATA ---
             Row(
               children: [
+                // Pulsante PRECEDENTE
                 Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: indiceAttuale > 0
-                        ? () => cambiaEsercizio(indiceAttuale - 1)
-                        : null,
-                    icon: const Icon(Icons.chevron_left),
-                    label: const Text("PRECEDENTE"),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueGrey[800],
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor: Colors.grey[200],
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
+                  child: !isPrimo
+                      ? ElevatedButton.icon(
+                          onPressed: () => cambiaEsercizio(indiceAttuale - 1),
+                          icon: const Icon(Icons.chevron_left),
+                          label: const Text("PRECEDENTE"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blueGrey[800],
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        )
+                      : const SizedBox.shrink(),
                 ),
-                const SizedBox(width: 15),
+
+                if (!isPrimo && !isUltimo) const SizedBox(width: 15),
+
+                // Pulsante SUCCESSIVO o TORNA ALLA LISTA
                 Expanded(
-                  child: ElevatedButton(
-                    onPressed: indiceAttuale < listaEsercizi.length - 1
-                        ? () => cambiaEsercizio(indiceAttuale + 1)
-                        : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor: Colors.grey[200],
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [Text("SUCCESSIVO"), Icon(Icons.chevron_right)],
-                    ),
-                  ),
+                  child: isUltimo
+                      ? ElevatedButton.icon(
+                          onPressed: vaiIndietro, // Torna alla lista
+                          icon: const Icon(Icons.list_alt_rounded),
+                          label: const Text("TORNA ALLA LISTA ESERCIZI"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        )
+                      : ElevatedButton(
+                          onPressed: () => cambiaEsercizio(indiceAttuale + 1),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text("SUCCESSIVO"),
+                              SizedBox(width: 5),
+                              Icon(Icons.chevron_right),
+                            ],
+                          ),
+                        ),
                 ),
               ],
             ),
