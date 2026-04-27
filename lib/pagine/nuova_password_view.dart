@@ -46,13 +46,22 @@ class _NuovaPasswordViewState extends State<NuovaPasswordView> {
         UserAttributes(password: pass),
       );
 
+      // --- LOGICA DI SICUREZZA AGGIUNTA ---
+      // Facciamo subito il logout. Questo invalida la sessione temporanea del reset
+      // ed evita che l'app entri in Home automaticamente al riavvio.
+      await DatabaseService.supabase.auth.signOut();
+      // ------------------------------------
+
       if (!mounted) return;
 
-      _mostraMessaggio("Password aggiornata con successo!", Colors.green);
+      _mostraMessaggio("Password aggiornata! Torna al login...", Colors.green);
 
-      // 3. Piccolo delay e ritorno al login
+      // 3. Delay di 2 secondi per mostrare il messaggio di successo
       await Future.delayed(const Duration(seconds: 2));
-      widget.vaiALogin();
+
+      if (mounted) {
+        widget.vaiALogin();
+      }
     } catch (e) {
       _mostraMessaggio("Errore durante l'aggiornamento. Riprova.", Colors.red);
     } finally {
@@ -61,14 +70,25 @@ class _NuovaPasswordViewState extends State<NuovaPasswordView> {
   }
 
   void _mostraMessaggio(String testo, Color colore) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(testo), backgroundColor: colore));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(testo),
+        backgroundColor: colore,
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Evitiamo che l'utente torni indietro durante il processo
+      appBar: AppBar(
+        title: const Text("Recupero Account"),
+        automaticallyImplyLeading: false,
+        centerTitle: true,
+      ),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -80,6 +100,12 @@ class _NuovaPasswordViewState extends State<NuovaPasswordView> {
               const Text(
                 "IMPOSTA NUOVA PASSWORD",
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                "Inserisci la tua nuova password qui sotto",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey),
               ),
               const SizedBox(height: 30),
 
@@ -134,7 +160,14 @@ class _NuovaPasswordViewState extends State<NuovaPasswordView> {
                     ),
                   ),
                   child: _isCaricamento
-                      ? const CircularProgressIndicator(color: Colors.white)
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
                       : const Text(
                           "AGGIORNA PASSWORD",
                           style: TextStyle(fontWeight: FontWeight.bold),
