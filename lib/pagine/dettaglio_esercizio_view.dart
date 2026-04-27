@@ -24,13 +24,20 @@ class DettaglioEsercizioView extends StatelessWidget {
   Future<void> _apriVideo(String url) async {
     if (url.isEmpty) return;
     final Uri uri = Uri.parse(url.startsWith('http') ? url : 'https://$url');
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      throw Exception('Could not launch $uri');
+    try {
+      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+        debugPrint('Could not launch $url');
+      }
+    } catch (e) {
+      debugPrint('Errore apertura video: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (listaEsercizi.isEmpty)
+      return const Scaffold(body: Center(child: Text("Nessun dato")));
+
     final dati = listaEsercizi[indiceAttuale];
 
     // Recupero dati e parsing multi-serie
@@ -56,31 +63,41 @@ class DettaglioEsercizioView extends StatelessWidget {
         .split(',');
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        leading: TextButton(
-          onPressed: vaiIndietro,
-          child: const Text(
-            "<- INDIETRO",
-            style: TextStyle(color: Colors.blue, fontSize: 10),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        // MODIFICA 3: Freccia blu verso sx
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            color: Colors.blue,
+            size: 28,
           ),
+          onPressed: vaiIndietro,
         ),
         title: const Text(
           "REPORT ATLETA",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         child: Column(
           children: [
-            // SCHEDA 1: COSA HAI ASSEGNATO (PT)
+            // SCHEDA 1: INFO ESERCIZIO (PT)
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(15),
+                color: const Color(0xFFF8F9FA),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.grey.shade200),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,120 +106,107 @@ class DettaglioEsercizioView extends StatelessWidget {
                     nome,
                     style: const TextStyle(
                       fontSize: 22,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w900,
                       color: Colors.blue,
                     ),
                   ),
+                  const SizedBox(height: 12),
+                  _buildIconInfo(Icons.fitness_center, "Serie e Reps: $target"),
                   const SizedBox(height: 8),
-                  Text(
-                    "Target assegnato: $target",
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  _buildIconInfo(
+                    Icons.timer_outlined,
+                    "Recupero: $recupero secondi",
                   ),
-                  Text(
-                    "Recupero: $recupero\"",
-                    style: const TextStyle(fontSize: 15),
-                  ),
-                  const SizedBox(height: 10),
+                  const Divider(height: 30),
                   const Text(
                     "TUE NOTE:",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      color: Colors.blueGrey,
+                    ),
                   ),
+                  const SizedBox(height: 6),
                   Text(
                     notePT,
                     style: const TextStyle(
                       fontStyle: FontStyle.italic,
-                      fontSize: 13,
+                      fontSize: 14,
+                      color: Colors.black87,
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 15),
+            const SizedBox(height: 20),
 
-            // SCHEDA 2: COSA HA FATTO L'ATLETA (REPORT)
+            // SCHEDA 2: PERFORMANCE ATLETA (MODIFICA 4: RIMOSSO GIALLO)
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.orange[50],
-                borderRadius: BorderRadius.circular(15),
-                border: Border.all(color: Colors.orange[100]!),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.blue.withOpacity(0.2)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.03),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    "PERFORMANCE ATLETA",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.orange,
-                    ),
-                  ),
-                  const SizedBox(height: 15),
-
-                  // Tabella Intestazione
                   const Row(
                     children: [
-                      Expanded(
-                        flex: 1,
-                        child: Text(
-                          "SET",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          "PREC.",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          "KG ATLETA",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                            color: Colors.blue,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: Text(
-                          "REPS",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                            color: Colors.blue,
-                          ),
+                      Icon(Icons.insights, color: Colors.blue, size: 20),
+                      SizedBox(width: 8),
+                      Text(
+                        "PERFORMANCE ATLETA",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
                         ),
                       ),
                     ],
                   ),
-                  const Divider(),
+                  const SizedBox(height: 15),
+
+                  // Tabella Intestazione
+                  Row(
+                    children: [
+                      _headerCell("Serie", 1),
+                      _headerCell("Kg prec.", 2),
+                      _headerCell("Kg oggi", 2, color: Colors.blue),
+                      _headerCell("Reps", 1, color: Colors.blue),
+                    ],
+                  ),
+                  const Divider(height: 20),
 
                   // Generazione righe per ogni serie
                   for (int i = 0; i < nSerie; i++)
                     Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 5),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
                       child: Row(
                         children: [
-                          Expanded(flex: 1, child: Text("#${i + 1}")),
+                          Expanded(
+                            flex: 1,
+                            child: Text(
+                              "${i + 1}",
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
                           Expanded(
                             flex: 2,
-                            child: Text("${_getVal(pesiScorsi, i)} kg"),
+                            child: Text(
+                              "${_getVal(pesiScorsi, i)} kg",
+                              style: TextStyle(color: Colors.grey[600]),
+                            ),
                           ),
                           Expanded(
                             flex: 2,
@@ -228,73 +232,134 @@ class DettaglioEsercizioView extends StatelessWidget {
                       ),
                     ),
 
-                  const Divider(),
+                  const Divider(height: 30),
                   const Text(
                     "NOTE DELL'ATLETA:",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      color: Colors.blueGrey,
+                    ),
                   ),
-                  const SizedBox(height: 5),
+                  const SizedBox(height: 8),
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
+                      color: Colors.grey[50],
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
                       noteAtleta,
-                      style: const TextStyle(fontSize: 13),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black87,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 15),
+            const SizedBox(height: 25),
 
             // SEZIONE VIDEO
-            if (linkVideo.isNotEmpty) ...[
-              const Text(
-                "VIDEO TUTORIAL:",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              ),
-              const SizedBox(height: 5),
-              ElevatedButton.icon(
-                onPressed: () => _apriVideo(linkVideo),
-                icon: const Icon(Icons.play_circle_fill),
-                label: const Text("GUARDA IL VIDEO"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(double.infinity, 50),
+            if (linkVideo.isNotEmpty)
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => _apriVideo(linkVideo),
+                  icon: const Icon(Icons.play_circle_fill),
+                  label: const Text("GUARDA VIDEO TUTORIAL"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueGrey[800],
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                 ),
               ),
-            ],
 
-            const Divider(height: 40),
+            const SizedBox(height: 30),
 
-            // NAVIGAZIONE
+            // NAVIGAZIONE (MODIFICA 2: STESSA GRAFICA ATLETA)
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                if (indiceAttuale > 0)
-                  ElevatedButton(
-                    onPressed: () => cambiaEsercizio(indiceAttuale - 1),
-                    child: const Text("PRECEDENTE"),
-                  )
-                else
-                  const SizedBox(width: 100),
-
-                if (indiceAttuale < listaEsercizi.length - 1)
-                  ElevatedButton(
-                    onPressed: () => cambiaEsercizio(indiceAttuale + 1),
-                    child: const Text("SUCCESSIVO"),
-                  )
-                else
-                  const SizedBox(width: 100),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: indiceAttuale > 0
+                        ? () => cambiaEsercizio(indiceAttuale - 1)
+                        : null,
+                    icon: const Icon(Icons.chevron_left),
+                    label: const Text("PRECEDENTE"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueGrey[800],
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.grey[200],
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 15),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: indiceAttuale < listaEsercizi.length - 1
+                        ? () => cambiaEsercizio(indiceAttuale + 1)
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.grey[200],
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text("SUCCESSIVO"),
+                        SizedBox(width: 5),
+                        Icon(Icons.chevron_right),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 40),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIconInfo(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: Colors.blueGrey),
+        const SizedBox(width: 8),
+        Text(
+          text,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+        ),
+      ],
+    );
+  }
+
+  Widget _headerCell(String testo, int flex, {Color color = Colors.blueGrey}) {
+    return Expanded(
+      flex: flex,
+      child: Text(
+        testo,
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 11,
+          color: color,
         ),
       ),
     );

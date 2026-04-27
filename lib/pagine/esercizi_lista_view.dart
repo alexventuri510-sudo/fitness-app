@@ -57,30 +57,20 @@ class _EserciziListaViewState extends State<EserciziListaView> {
     }
   }
 
-  // --- LOGICA DI REFRESH AGGIORNATA ---
-
   void _gestisciAggiuntaEsercizio() async {
-    // Aspetta che la pagina di aggiunta venga chiusa
     await widget.vaiAAggiungiEsercizio(widget.planId, _settimanaAttuale);
-    // Refresh automatico al ritorno
     _caricaEsercizi();
   }
 
   void _gestisciModificaEsercizio(dynamic es) async {
-    // Aspetta che la pagina di modifica venga chiusa
     await widget.vaiAModifica(es, _settimanaAttuale);
-    // Refresh automatico al ritorno
     _caricaEsercizi();
   }
 
   void _gestisciVisualizzazioneDettaglio(int index) async {
-    // Aspetta che la pagina dettaglio (dove potresti fare modifiche) venga chiusa
     await widget.vaiADettaglio(_esercizi, index, _settimanaAttuale);
-    // Refresh automatico al ritorno
     _caricaEsercizi();
   }
-
-  // ------------------------------------
 
   void _sposta(int index, String direzione) async {
     int targetIndex = direzione == "su" ? index - 1 : index + 1;
@@ -96,6 +86,48 @@ class _EserciziListaViewState extends State<EserciziListaView> {
 
     await DatabaseService.spostaEsercizio(idCorrente.toString(), targetIndex);
     await DatabaseService.spostaEsercizio(idTarget.toString(), index);
+  }
+
+  // --- POPUP CONFERMA COPIA ---
+  void _confermaCopiaSettimana() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Copia Settimana 1"),
+        content: const Text(
+          "Vuoi copiare tutti gli esercizi della Settimana 1 in tutte le altre settimane del piano? Questa operazione sovrascriverà eventuali esercizi già presenti.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Annulla"),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+            onPressed: () async {
+              Navigator.pop(context);
+              final res = await DatabaseService.copiaSettimanaUno(
+                widget.planId,
+                widget.durataSettimane,
+              );
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(res['msg']),
+                    backgroundColor: res['success'] ? Colors.green : Colors.red,
+                  ),
+                );
+                if (res['success']) _caricaEsercizi();
+              }
+            },
+            child: const Text(
+              "Conferma",
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _confermaElimina(dynamic es) {
@@ -184,6 +216,9 @@ class _EserciziListaViewState extends State<EserciziListaView> {
                             : Colors.grey[100],
                         foregroundColor: isActive ? Colors.white : Colors.blue,
                         elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                       child: Text("SETT $n"),
                     ),
@@ -208,55 +243,71 @@ class _EserciziListaViewState extends State<EserciziListaView> {
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
+            const SizedBox(height: 12),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 if (_settimanaAttuale == 1)
-                  TextButton.icon(
-                    onPressed: () async {
-                      final res = await DatabaseService.copiaSettimanaUno(
-                        widget.planId,
-                        widget.durataSettimane,
-                      );
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(res['msg']),
-                            backgroundColor: res['success']
-                                ? Colors.green
-                                : Colors.red,
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 5),
+                      child: OutlinedButton.icon(
+                        onPressed: _confermaCopiaSettimana,
+                        icon: const Icon(Icons.copy_all, size: 18),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.blueGrey,
+                          side: BorderSide(color: Colors.grey.shade300),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                        );
-                        if (res['success']) _caricaEsercizi();
-                      }
-                    },
-                    icon: const Icon(
-                      Icons.copy_all,
-                      size: 18,
-                      color: Colors.orange,
-                    ),
-                    label: const Text(
-                      "Copia Sett. 1",
-                      style: TextStyle(color: Colors.orange, fontSize: 13),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        label: const Text(
+                          "COPIA SETT. 1",
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                TextButton.icon(
-                  onPressed: () =>
-                      setState(() => _modalitaRiordino = !_modalitaRiordino),
-                  icon: Icon(
-                    Icons.swap_vert,
-                    color: _modalitaRiordino ? Colors.green : Colors.orange,
-                  ),
-                  label: Text(
-                    _modalitaRiordino ? "SALVA ORDINE" : "RIORDINA",
-                    style: TextStyle(
-                      color: _modalitaRiordino ? Colors.green : Colors.orange,
-                      fontSize: 13,
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 5),
+                    child: ElevatedButton.icon(
+                      onPressed: () => setState(
+                        () => _modalitaRiordino = !_modalitaRiordino,
+                      ),
+                      icon: Icon(
+                        _modalitaRiordino
+                            ? Icons.check_circle
+                            : Icons.swap_vert,
+                        size: 18,
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _modalitaRiordino
+                            ? Colors.green
+                            : Colors.blueGrey[700],
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      label: Text(
+                        _modalitaRiordino ? "SALVA ORDINE" : "RIORDINA",
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ),
                 ),
               ],
             ),
+            const SizedBox(height: 10),
             const Divider(),
             Expanded(
               child: _loading
@@ -311,14 +362,22 @@ class _EserciziListaViewState extends State<EserciziListaView> {
               children: [
                 if (index > 0)
                   IconButton(
-                    icon: const Icon(Icons.arrow_drop_up, color: Colors.blue),
+                    icon: const Icon(
+                      Icons.arrow_drop_up,
+                      color: Colors.blue,
+                      size: 30,
+                    ),
                     onPressed: () => _sposta(index, "su"),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                   ),
                 if (index < _esercizi.length - 1)
                   IconButton(
-                    icon: const Icon(Icons.arrow_drop_down, color: Colors.blue),
+                    icon: const Icon(
+                      Icons.arrow_drop_down,
+                      color: Colors.blue,
+                      size: 30,
+                    ),
                     onPressed: () => _sposta(index, "giu"),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
@@ -330,8 +389,9 @@ class _EserciziListaViewState extends State<EserciziListaView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // --- AGGIUNTA NUMERAZIONE QUI ---
                 Text(
-                  es['exercise_name']?.toString().toUpperCase() ?? "ESERCIZIO",
+                  "${index + 1}) ${es['exercise_name']?.toString().toUpperCase() ?? "ESERCIZIO"}",
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14,

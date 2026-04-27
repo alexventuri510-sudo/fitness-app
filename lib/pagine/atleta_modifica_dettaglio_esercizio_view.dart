@@ -36,9 +36,7 @@ class _AtletaModificaDettaglioEsercizioViewState
   }
 
   void _inizializzaCampi() {
-    final dati = Map<String, dynamic>.from(
-      widget.listaEsercizi[widget.indiceAttuale],
-    );
+    final dati = widget.listaEsercizi[widget.indiceAttuale];
     final int nSerie = dati['series_count'] ?? 1;
 
     for (var c in _controllersKg) {
@@ -77,7 +75,6 @@ class _AtletaModificaDettaglioEsercizioViewState
     List<String> nuoveReps = _controllersReps.map((c) => c.text).toList();
     String nuoveNote = _controllerNote.text;
 
-    // Aggiornamento locale immediato
     widget.listaEsercizi[widget.indiceAttuale]['series_weights_atleta'] =
         nuoviPesi.join(',');
     widget.listaEsercizi[widget.indiceAttuale]['series_reps_atleta'] = nuoveReps
@@ -112,9 +109,7 @@ class _AtletaModificaDettaglioEsercizioViewState
 
   @override
   Widget build(BuildContext context) {
-    final dati = Map<String, dynamic>.from(
-      widget.listaEsercizi[widget.indiceAttuale],
-    );
+    final dati = widget.listaEsercizi[widget.indiceAttuale];
     final String nome = (dati['exercise_name'] ?? "Esercizio")
         .toString()
         .toUpperCase();
@@ -126,32 +121,24 @@ class _AtletaModificaDettaglioEsercizioViewState
         .split(',');
 
     return PopScope(
-      canPop: false, // Gestiamo noi il pop per forzare il refresh
+      canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        Navigator.of(
-          context,
-        ).pop(true); // Restituisce true per forzare il refresh
+        Navigator.of(context).pop(true);
       },
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0,
-          leading: TextButton(
-            onPressed: () => Navigator.of(
-              context,
-            ).pop(true), // Chiudi con segnale di refresh
-            child: const Text(
-              "CHIUDI",
-              style: TextStyle(
-                color: Colors.blueAccent,
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-              ),
+          leading: IconButton(
+            icon: const Icon(
+              Icons.arrow_back_ios_new,
+              color: Colors.blue,
+              size: 28,
             ),
+            onPressed: () => Navigator.of(context).pop(true),
           ),
-          leadingWidth: 80,
           title: const Text(
             "LOG SESSIONE",
             style: TextStyle(
@@ -168,13 +155,14 @@ class _AtletaModificaDettaglioEsercizioViewState
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             child: Column(
               children: [
+                // INFO TRAINER
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF8F9FA),
-                    borderRadius: BorderRadius.circular(15),
-                    border: Border.all(color: Colors.black.withOpacity(0.05)),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.grey.shade200),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -182,37 +170,26 @@ class _AtletaModificaDettaglioEsercizioViewState
                       Text(
                         nome,
                         style: const TextStyle(
-                          fontSize: 18,
+                          fontSize: 20,
                           fontWeight: FontWeight.w900,
-                          color: Colors.blueAccent,
+                          color: Colors.blue,
                         ),
                       ),
                       const SizedBox(height: 10),
-                      Text(
-                        "OBIETTIVO: $target",
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        "RECUPERO: $recupero secondi",
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey.shade700,
-                        ),
+                      _infoRow(Icons.fitness_center, "Serie e Reps: $target"),
+                      _infoRow(
+                        Icons.timer_outlined,
+                        "Recupero: $recupero secondi",
                       ),
                       const Divider(height: 25),
                       const Text(
-                        "INDICAZIONI DEL TRAINER:",
+                        "NOTE DEL TRAINER:",
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 11,
                           color: Colors.blueGrey,
                         ),
                       ),
-                      const SizedBox(height: 5),
                       Text(
                         notePt,
                         style: const TextStyle(
@@ -224,15 +201,17 @@ class _AtletaModificaDettaglioEsercizioViewState
                   ),
                 ),
                 const SizedBox(height: 20),
+
+                // LOG ATLETA
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(15),
-                    border: Border.all(color: Colors.orange.shade200),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.blue.withOpacity(0.2)),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.orange.withOpacity(0.05),
+                        color: Colors.black.withOpacity(0.03),
                         blurRadius: 10,
                       ),
                     ],
@@ -242,14 +221,14 @@ class _AtletaModificaDettaglioEsercizioViewState
                     children: [
                       const Row(
                         children: [
-                          Icon(Icons.edit_note, color: Colors.orange),
+                          Icon(Icons.edit_note, color: Colors.blue),
                           SizedBox(width: 8),
                           Text(
                             "INSERISCI DATI",
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 15,
                               fontWeight: FontWeight.w900,
-                              color: Colors.orange,
+                              color: Colors.blue,
                             ),
                           ),
                         ],
@@ -257,22 +236,22 @@ class _AtletaModificaDettaglioEsercizioViewState
                       const SizedBox(height: 20),
                       Row(
                         children: [
-                          _headerCol("SET", 1),
-                          _headerCol("PREC.", 2),
-                          _headerCol("KG OGGI", 2),
-                          _headerCol("REPS", 2),
+                          _headerCol("Serie", 1),
+                          _headerCol("Kg prec.", 2),
+                          _headerCol("Kg oggi", 2, color: Colors.blue),
+                          _headerCol("Reps", 2, color: Colors.blue),
                         ],
                       ),
                       const SizedBox(height: 10),
                       for (int i = 0; i < _controllersKg.length; i++)
                         Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.only(bottom: 12),
                           child: Row(
                             children: [
                               Expanded(
                                 flex: 1,
                                 child: Text(
-                                  "#${i + 1}",
+                                  "${i + 1}",
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -323,78 +302,99 @@ class _AtletaModificaDettaglioEsercizioViewState
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 11,
+                          color: Colors.blueGrey,
                         ),
                       ),
                       const SizedBox(height: 8),
                       TextField(
                         controller: _controllerNote,
                         maxLines: 2,
-                        decoration: _inputStyle(
-                          hint: "Come hai sentito il peso?",
-                        ),
+                        decoration: _inputStyle(hint: "Com'è andata?"),
                         onChanged: (_) => _eseguiSalvataggio(),
-                      ),
-                      const SizedBox(height: 15),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.cloud_done,
-                            color: Colors.green,
-                            size: 14,
-                          ),
-                          const SizedBox(width: 5),
-                          Text(
-                            "Sincronizzazione attiva",
-                            style: TextStyle(
-                              color: Colors.green.shade700,
-                              fontSize: 11,
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                        ],
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 20),
+
                 if (videoLink.isNotEmpty)
-                  OutlinedButton.icon(
-                    onPressed: () => _apriVideo(videoLink),
-                    icon: const Icon(Icons.play_circle_outline),
-                    label: const Text("GUARDA VIDEO ESECUZIONE"),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.blueAccent,
-                      side: const BorderSide(color: Colors.blueAccent),
-                      minimumSize: const Size(double.infinity, 50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () => _apriVideo(videoLink),
+                      icon: const Icon(Icons.play_circle_fill),
+                      label: const Text("VIDEO TUTORIAL"),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.blueGrey[800],
+                        side: BorderSide(color: Colors.blueGrey.shade800),
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                   ),
+
                 const SizedBox(height: 30),
+
+                // NAVIGAZIONE
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _navButton(
-                      label: "PRECEDENTE",
-                      onPressed: widget.indiceAttuale > 0
-                          ? () {
-                              _eseguiSalvataggio(); // Salva prima di cambiare
-                              widget.cambiaEsercizio(widget.indiceAttuale - 1);
-                              setState(() => _inizializzaCampi());
-                            }
-                          : null,
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: widget.indiceAttuale > 0
+                            ? () {
+                                _eseguiSalvataggio();
+                                widget.cambiaEsercizio(
+                                  widget.indiceAttuale - 1,
+                                );
+                                setState(() => _inizializzaCampi());
+                              }
+                            : null,
+                        icon: const Icon(Icons.chevron_left),
+                        label: const Text("PRECEDENTE"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blueGrey[800],
+                          foregroundColor: Colors.white,
+                          disabledBackgroundColor: Colors.grey[200],
+                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
                     ),
-                    _navButton(
-                      label: "SUCCESSIVO",
-                      onPressed:
-                          widget.indiceAttuale < widget.listaEsercizi.length - 1
-                          ? () {
-                              _eseguiSalvataggio(); // Salva prima di cambiare
-                              widget.cambiaEsercizio(widget.indiceAttuale + 1);
-                              setState(() => _inizializzaCampi());
-                            }
-                          : null,
+                    const SizedBox(width: 15),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed:
+                            widget.indiceAttuale <
+                                widget.listaEsercizi.length - 1
+                            ? () {
+                                _eseguiSalvataggio();
+                                widget.cambiaEsercizio(
+                                  widget.indiceAttuale + 1,
+                                );
+                                setState(() => _inizializzaCampi());
+                              }
+                            : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                          disabledBackgroundColor: Colors.grey[200],
+                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text("SUCCESSIVO"),
+                            Icon(Icons.chevron_right),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -407,34 +407,32 @@ class _AtletaModificaDettaglioEsercizioViewState
     );
   }
 
-  Widget _headerCol(String label, int flex) {
-    return Expanded(
-      flex: flex,
-      child: Text(
-        label,
-        style: const TextStyle(
-          fontWeight: FontWeight.w900,
-          fontSize: 10,
-          color: Colors.blueGrey,
-        ),
+  Widget _infoRow(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: Colors.grey),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _navButton({required String label, VoidCallback? onPressed}) {
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        disabledBackgroundColor: Colors.grey.shade200,
-        elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      ),
+  Widget _headerCol(String label, int flex, {Color color = Colors.blueGrey}) {
+    return Expanded(
+      flex: flex,
       child: Text(
         label,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+        style: TextStyle(
+          fontWeight: FontWeight.w900,
+          fontSize: 10,
+          color: color,
+        ),
       ),
     );
   }
@@ -447,16 +445,16 @@ class _AtletaModificaDettaglioEsercizioViewState
       fillColor: const Color(0xFFF8F9FA),
       filled: true,
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide.none,
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(10),
         borderSide: BorderSide(color: Colors.grey.shade200),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: Colors.orange),
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: Colors.blue, width: 2),
       ),
     );
   }

@@ -17,9 +17,12 @@ class _RegisterViewState extends State<RegisterView> {
   final TextEditingController _cognomeController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passController = TextEditingController();
+  final TextEditingController _confermaPassController =
+      TextEditingController(); // AGGIUNTO
 
   String? _ruoloSelezionato;
   bool _accettoTermini = false;
+  bool _obscureText = true; // AGGIUNTO per gestire la visibilità
   String _errorText = "";
   String _successText = "";
 
@@ -71,6 +74,7 @@ class _RegisterViewState extends State<RegisterView> {
     // 1. Validazione campi obbligatori
     if (_emailController.text.isEmpty ||
         _passController.text.isEmpty ||
+        _confermaPassController.text.isEmpty ||
         _nomeController.text.isEmpty ||
         _ruoloSelezionato == null) {
       setState(() {
@@ -79,7 +83,15 @@ class _RegisterViewState extends State<RegisterView> {
       return;
     }
 
-    // 2. Controllo Checkbox Privacy
+    // 2. Controllo coincidenza password
+    if (_passController.text != _confermaPassController.text) {
+      setState(() {
+        _errorText = "Le password non coincidono!";
+      });
+      return;
+    }
+
+    // 3. Controllo Checkbox Privacy
     if (!_accettoTermini) {
       setState(() {
         _errorText = "Devi accettare i termini e la privacy per continuare";
@@ -106,6 +118,7 @@ class _RegisterViewState extends State<RegisterView> {
           _cognomeController.clear();
           _emailController.clear();
           _passController.clear();
+          _confermaPassController.clear();
           _ruoloSelezionato = null;
           _accettoTermini = false;
         });
@@ -158,7 +171,13 @@ class _RegisterViewState extends State<RegisterView> {
                 keyboard: TextInputType.emailAddress,
               ),
               const SizedBox(height: 10),
-              _buildField(_passController, "Password", obscure: true),
+
+              // Campo Password con Occhiolino
+              _buildPasswordField(_passController, "Password"),
+              const SizedBox(height: 10),
+
+              // Campo Conferma Password con Occhiolino
+              _buildPasswordField(_confermaPassController, "Conferma Password"),
               const SizedBox(height: 10),
 
               // Dropdown Ruolo
@@ -176,7 +195,7 @@ class _RegisterViewState extends State<RegisterView> {
               ),
               const SizedBox(height: 15),
 
-              // NUOVA SEZIONE CHECKBOX CON "LEGGI INFO"
+              // SEZIONE CHECKBOX
               SizedBox(
                 width: 320,
                 child: Row(
@@ -272,19 +291,42 @@ class _RegisterViewState extends State<RegisterView> {
     );
   }
 
+  // Widget per i campi normali
   Widget _buildField(
     TextEditingController controller,
     String label, {
-    bool obscure = false,
     TextInputType keyboard = TextInputType.text,
   }) {
     return SizedBox(
       width: 300,
       child: TextField(
         controller: controller,
-        obscureText: obscure,
         keyboardType: keyboard,
         decoration: StyleConfig.campoTestoDecoration(label: label),
+      ),
+    );
+  }
+
+  // Widget specifico per le Password con l'occhiolino
+  Widget _buildPasswordField(TextEditingController controller, String label) {
+    return SizedBox(
+      width: 300,
+      child: TextField(
+        controller: controller,
+        obscureText: _obscureText,
+        decoration: StyleConfig.campoTestoDecoration(label: label).copyWith(
+          suffixIcon: IconButton(
+            icon: Icon(
+              _obscureText ? Icons.visibility : Icons.visibility_off,
+              color: Colors.grey,
+            ),
+            onPressed: () {
+              setState(() {
+                _obscureText = !_obscureText;
+              });
+            },
+          ),
+        ),
       ),
     );
   }

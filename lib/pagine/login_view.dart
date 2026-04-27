@@ -24,6 +24,7 @@ class _LoginViewState extends State<LoginView> {
 
   String _errorText = "";
   bool _isLoading = false;
+  bool _obscureText = true; // AGGIUNTO: Stato per la visibilità della password
 
   Future<void> _clickAccedi() async {
     if (_isLoading) return;
@@ -138,10 +139,10 @@ class _LoginViewState extends State<LoginView> {
                     ),
                     const SizedBox(height: 20),
 
-                    // Campo Password
+                    // Campo Password con Occhiolino
                     TextField(
                       controller: _passController,
-                      obscureText: true,
+                      obscureText: _obscureText, // Modificato
                       autofillHints: const [AutofillHints.password],
                       textInputAction: TextInputAction.done,
                       enabled: !_isLoading,
@@ -153,6 +154,20 @@ class _LoginViewState extends State<LoginView> {
                             prefixIcon: const Icon(
                               Icons.lock_outline,
                               size: 22,
+                            ),
+                            // AGGIUNTO: Icona occhiolino per mostrare/nascondere
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscureText
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                                color: Colors.grey,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscureText = !_obscureText;
+                                });
+                              },
                             ),
                           ),
                     ),

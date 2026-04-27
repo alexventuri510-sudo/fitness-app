@@ -38,8 +38,9 @@ class AtletaDettaglioEsercizioView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (listaEsercizi.isEmpty)
+    if (listaEsercizi.isEmpty) {
       return const Scaffold(body: Center(child: Text("Nessun dato")));
+    }
 
     final dati = listaEsercizi[indiceAttuale];
 
@@ -54,10 +55,8 @@ class AtletaDettaglioEsercizioView extends StatelessWidget {
         dati['athlete_notes'] ?? "Nessuna nota registrata.";
     final String videoLink = (dati['video_link'] ?? "").toString().trim();
 
-    // Logica Multi-serie
     final int nSerie = dati['series_count'] ?? 1;
 
-    // Split sicuro: se la stringa è null o vuota, restituisce una lista vuota
     List<String> pesiScorsi = (dati['series_weights_scorsi']?.toString() ?? "")
         .split(',')
         .where((s) => s.isNotEmpty)
@@ -76,21 +75,27 @@ class AtletaDettaglioEsercizioView extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        // FRECCIA BLU RICHIESTA
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.blue),
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            color: Colors.blue,
+            size: 28,
+          ),
           onPressed: vaiIndietro,
         ),
         title: Text(
           "ESERCIZIO ${indiceAttuale + 1} DI ${listaEsercizi.length}",
           style: const TextStyle(
-            color: Colors.grey,
-            fontSize: 14,
+            color: Colors.black,
+            fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
         ),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
+        // Rimosse animazioni: il cambio di indice aggiorna direttamente la UI
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -100,8 +105,9 @@ class AtletaDettaglioEsercizioView extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFFF0F2F5),
+                color: const Color(0xFFF8F9FA),
                 borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.grey.shade200),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -110,44 +116,18 @@ class AtletaDettaglioEsercizioView extends StatelessWidget {
                     nome,
                     style: const TextStyle(
                       fontSize: 22,
-                      fontWeight: FontWeight.w900,
+                      fontWeight: FontWeight.w900, // CORRETTO QUI
                       color: Colors.blue,
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.fitness_center,
-                        size: 18,
-                        color: Colors.blueGrey,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        "Target: $target",
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
+                  const SizedBox(height: 12),
+                  _buildIconInfo(Icons.fitness_center, "Serie e Reps: $target"),
+                  const SizedBox(height: 8),
+                  _buildIconInfo(
+                    Icons.timer_outlined,
+                    "Recupero: $recupero secondi",
                   ),
-                  const SizedBox(height: 5),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.timer_outlined,
-                        size: 18,
-                        color: Colors.blueGrey,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        "Recupero: $recupero secondi",
-                        style: const TextStyle(fontSize: 15),
-                      ),
-                    ],
-                  ),
-                  const Divider(height: 25),
+                  const Divider(height: 30),
                   const Text(
                     "NOTE DEL TRAINER:",
                     style: TextStyle(
@@ -156,7 +136,7 @@ class AtletaDettaglioEsercizioView extends StatelessWidget {
                       color: Colors.blueGrey,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Text(
                     notePt,
                     style: const TextStyle(
@@ -170,53 +150,62 @@ class AtletaDettaglioEsercizioView extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // --- SCHEDA RIASSUNTO SESSIONE ---
+            // --- SCHEDA DATI ATLETA (DESIGN PULITO, NO GIALLO) ---
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.05),
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.orange.shade100),
+                border: Border.all(color: Colors.blue.withOpacity(0.2)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.03),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Row(
                     children: [
-                      Icon(Icons.history, color: Colors.orange, size: 20),
+                      Icon(
+                        Icons.assignment_turned_in,
+                        color: Colors.blue,
+                        size: 20,
+                      ),
                       SizedBox(width: 8),
                       Text(
                         "DATI REGISTRATI",
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Colors.orange,
+                          color: Colors.blue,
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 15),
-                  // Intestazione Tabella
                   Row(
                     children: [
-                      _headerCell("SET", 1),
-                      _headerCell("SCORSI", 2),
-                      _headerCell("KG OGGI", 2, color: Colors.blue),
-                      _headerCell("REPS", 1, color: Colors.blue),
+                      _headerCell("Serie", 1),
+                      _headerCell("Kg prec.", 2),
+                      _headerCell("Kg oggi", 2, color: Colors.blue),
+                      _headerCell("Reps", 1, color: Colors.blue),
                     ],
                   ),
-                  const Divider(),
-                  // Righe serie
+                  const Divider(height: 20),
                   for (int i = 0; i < nSerie; i++)
                     Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
                       child: Row(
                         children: [
                           Expanded(
                             flex: 1,
                             child: Text(
-                              "#${i + 1}",
+                              "${i + 1}",
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                               ),
@@ -224,7 +213,10 @@ class AtletaDettaglioEsercizioView extends StatelessWidget {
                           ),
                           Expanded(
                             flex: 2,
-                            child: Text("${_getVal(pesiScorsi, i)} kg"),
+                            child: Text(
+                              "${_getVal(pesiScorsi, i)} kg",
+                              style: TextStyle(color: Colors.grey[600]),
+                            ),
                           ),
                           Expanded(
                             flex: 2,
@@ -249,13 +241,13 @@ class AtletaDettaglioEsercizioView extends StatelessWidget {
                         ],
                       ),
                     ),
-                  const Divider(),
+                  const Divider(height: 30),
                   const Text(
                     "LE TUE NOTE:",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
-                      color: Colors.orange,
+                      color: Colors.blueGrey,
                     ),
                   ),
                   const SizedBox(height: 5),
@@ -266,9 +258,8 @@ class AtletaDettaglioEsercizioView extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 25),
 
-            // --- SEZIONE VIDEO ---
             if (videoLink.isNotEmpty)
               SizedBox(
                 width: double.infinity,
@@ -277,9 +268,9 @@ class AtletaDettaglioEsercizioView extends StatelessWidget {
                   icon: const Icon(Icons.play_circle_fill),
                   label: const Text("GUARDA VIDEO TUTORIAL"),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blueGrey.shade800,
+                    backgroundColor: Colors.blueGrey[800],
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(vertical: 15),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -289,45 +280,48 @@ class AtletaDettaglioEsercizioView extends StatelessWidget {
 
             const SizedBox(height: 30),
 
-            // --- NAVIGAZIONE ---
+            // --- NAVIGAZIONE (ESTETICA RICHIESTA) ---
             Row(
               children: [
-                if (indiceAttuale > 0)
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => cambiaEsercizio(indiceAttuale - 1),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                        side: const BorderSide(color: Colors.blue),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: indiceAttuale > 0
+                        ? () => cambiaEsercizio(indiceAttuale - 1)
+                        : null,
+                    icon: const Icon(Icons.chevron_left),
+                    label: const Text("PRECEDENTE"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueGrey[800],
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.grey[200],
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Text("PRECEDENTE"),
                     ),
-                  )
-                else
-                  const Spacer(),
-
+                  ),
+                ),
                 const SizedBox(width: 15),
-
-                if (indiceAttuale < listaEsercizi.length - 1)
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => cambiaEsercizio(indiceAttuale + 1),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: indiceAttuale < listaEsercizi.length - 1
+                        ? () => cambiaEsercizio(indiceAttuale + 1)
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.grey[200],
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Text("SUCCESSIVO"),
                     ),
-                  )
-                else
-                  const Spacer(),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [Text("SUCCESSIVO"), Icon(Icons.chevron_right)],
+                    ),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 40),
@@ -337,7 +331,20 @@ class AtletaDettaglioEsercizioView extends StatelessWidget {
     );
   }
 
-  Widget _headerCell(String testo, int flex, {Color color = Colors.black}) {
+  Widget _buildIconInfo(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: Colors.blueGrey),
+        const SizedBox(width: 8),
+        Text(
+          text,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+        ),
+      ],
+    );
+  }
+
+  Widget _headerCell(String testo, int flex, {Color color = Colors.blueGrey}) {
     return Expanded(
       flex: flex,
       child: Text(
