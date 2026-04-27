@@ -43,13 +43,15 @@ class DatabaseService {
     }
   }
 
-  static Future<String?> registraUtente(
-    String email,
-    String password,
-    String nome,
-    String cognome,
-    String ruolo,
-  ) async {
+  // --- REGISTRAZIONE AGGIORNATA CON PRIVACY ---
+  static Future<String?> registraUtente({
+    required String email,
+    required String password,
+    required String nome,
+    required String cognome,
+    required String ruolo,
+    required bool accettazioneTermini, // <--- AGGIUNTO
+  }) async {
     try {
       final resAuth = await supabase.auth.signUp(
         email: email,
@@ -61,8 +63,12 @@ class DatabaseService {
           'id': resAuth.user!.id,
           'first_name': nome,
           'last_name': cognome,
+          'email': email,
           'role': ruolo,
           'unique_code': codice,
+          'accettazione_termini': accettazioneTermini, // <--- AGGIUNTO
+          'data_accettazione': DateTime.now()
+              .toIso8601String(), // <--- AGGIUNTO
         });
         return codice;
       }
@@ -348,8 +354,6 @@ class DatabaseService {
     String athleteNotes,
   ) async {
     try {
-      // Pulizia dati: trasformiamo le liste in stringhe separate da virgola
-      // Se un valore è vuoto, salviamo comunque la virgola per mantenere la posizione della serie
       final String weightsStr = weights.map((w) => w.trim()).join(',');
       final String repsStr = reps.map((r) => r.trim()).join(',');
 

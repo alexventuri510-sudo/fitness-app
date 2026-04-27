@@ -19,8 +19,48 @@ class _RegisterViewState extends State<RegisterView> {
   final TextEditingController _passController = TextEditingController();
 
   String? _ruoloSelezionato;
+  bool _accettoTermini = false;
   String _errorText = "";
   String _successText = "";
+
+  // Funzione per mostrare il popup legale
+  void _mostraTutelaLegale(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Tutela Legale e Privacy"),
+          content: const SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "Informativa per l'utente:",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  "• L'utente dichiara di essere in possesso di certificato medico sportivo valido.\n"
+                  "• L'esecuzione degli esercizi avviene sotto la propria responsabilità e controllo.\n"
+                  "• I dati raccolti (Email, Nome, Carichi) sono trattati dal Dott. Bertolini esclusivamente per la gestione del piano di allenamento.\n"
+                  "• Il Titolare non è responsabile per infortuni derivanti da un'esecuzione errata o da condizioni fisiche non dichiarate.\n"
+                  "• È possibile richiedere la cancellazione dei dati in ogni momento.",
+                  style: TextStyle(fontSize: 14),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Ho capito"),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   Future<void> _eseguiRegistrazione() async {
     setState(() {
@@ -28,7 +68,7 @@ class _RegisterViewState extends State<RegisterView> {
       _successText = "";
     });
 
-    // Validazione campi obbligatori (come in Python)
+    // 1. Validazione campi obbligatori
     if (_emailController.text.isEmpty ||
         _passController.text.isEmpty ||
         _nomeController.text.isEmpty ||
@@ -39,13 +79,22 @@ class _RegisterViewState extends State<RegisterView> {
       return;
     }
 
+    // 2. Controllo Checkbox Privacy
+    if (!_accettoTermini) {
+      setState(() {
+        _errorText = "Devi accettare i termini e la privacy per continuare";
+      });
+      return;
+    }
+
     try {
       final res = await DatabaseService.registraUtente(
-        _emailController.text,
-        _passController.text,
-        _nomeController.text,
-        _cognomeController.text,
-        _ruoloSelezionato!,
+        email: _emailController.text,
+        password: _passController.text,
+        nome: _nomeController.text,
+        cognome: _cognomeController.text,
+        ruolo: _ruoloSelezionato!,
+        accettazioneTermini: _accettoTermini,
       );
 
       if (res != null) {
@@ -58,6 +107,7 @@ class _RegisterViewState extends State<RegisterView> {
           _emailController.clear();
           _passController.clear();
           _ruoloSelezionato = null;
+          _accettoTermini = false;
         });
       }
     } catch (ex) {
@@ -124,6 +174,48 @@ class _RegisterViewState extends State<RegisterView> {
                   onChanged: (val) => setState(() => _ruoloSelezionato = val),
                 ),
               ),
+              const SizedBox(height: 15),
+
+              // NUOVA SEZIONE CHECKBOX CON "LEGGI INFO"
+              SizedBox(
+                width: 320,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Checkbox(
+                      value: _accettoTermini,
+                      activeColor: Colors.blue,
+                      onChanged: (val) =>
+                          setState(() => _accettoTermini = val ?? false),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Wrap(
+                          children: [
+                            const Text(
+                              "Accetto i Termini, la Privacy e dichiaro l'idoneità sportiva. ",
+                              style: TextStyle(fontSize: 12),
+                            ),
+                            GestureDetector(
+                              onTap: () => _mostraTutelaLegale(context),
+                              child: const Text(
+                                "(Leggi info)",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.blue,
+                                  fontWeight: FontWeight.bold,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
 
               // Messaggi di stato
               if (_errorText.isNotEmpty)
@@ -131,6 +223,7 @@ class _RegisterViewState extends State<RegisterView> {
                   padding: const EdgeInsets.only(top: 15),
                   child: Text(
                     _errorText,
+                    textAlign: TextAlign.center,
                     style: const TextStyle(
                       color: StyleConfig.colorErrore,
                       fontWeight: FontWeight.bold,
@@ -138,9 +231,9 @@ class _RegisterViewState extends State<RegisterView> {
                   ),
                 ),
               if (_successText.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 15),
-                  child: const Text(
+                const Padding(
+                  padding: EdgeInsets.only(top: 15),
+                  child: Text(
                     "Account creato con successo!",
                     style: TextStyle(
                       color: Colors.green,

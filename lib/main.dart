@@ -7,6 +7,7 @@ import 'services/database_service.dart';
 import 'pagine/login_view.dart';
 import 'pagine/register_view.dart';
 import 'pagine/recupero_password_view.dart';
+import 'pagine/nuova_password_view.dart'; // <--- AGGIUNTO
 import 'pagine/pt_home_view.dart';
 import 'pagine/pt_profilo_view.dart';
 import 'pagine/aggiungi_atleta_view.dart';
@@ -61,6 +62,19 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     _checkAuthIniziale();
+    _ascoltaRecuperoPassword(); // <--- AGGIUNTO
+  }
+
+  // --- LOGICA RECUPERO PASSWORD ---
+  void _ascoltaRecuperoPassword() {
+    Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+      final AuthChangeEvent event = data.event;
+      if (event == AuthChangeEvent.passwordRecovery) {
+        setState(() {
+          _schermataAttuale = NuovaPasswordView(vaiALogin: _impostaLogin);
+        });
+      }
+    });
   }
 
   Future<void> _checkAuthIniziale() async {
@@ -401,7 +415,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       navigatorKey: navigatorKey,
-      title: 'Train Up',
+      title: 'DottBertoliniPT',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
