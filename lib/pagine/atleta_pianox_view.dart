@@ -27,12 +27,16 @@ class AtletaPianoXView extends StatefulWidget {
 class _AtletaPianoXViewState extends State<AtletaPianoXView> {
   List<dynamic> _esercizi = [];
   bool _isLoading = true;
-  String _titoloGiorno = "";
+  String _titoloGiorno = "SESSIONE DI ALLENAMENTO";
   String _dataInizioSottotitolo = "";
 
   @override
   void initState() {
     super.initState();
+    _inizializzaDati();
+  }
+
+  void _inizializzaDati() {
     _preparaDate();
     _caricaEsercizi();
   }
@@ -40,20 +44,31 @@ class _AtletaPianoXViewState extends State<AtletaPianoXView> {
   void _preparaDate() {
     if (widget.dataPianoStr != null && widget.dataPianoStr!.isNotEmpty) {
       try {
-        DateTime dataPiano = DateTime.parse(widget.dataPianoStr!.split("T")[0]);
+        // Parsing robusto della data
+        DateTime dataPiano;
+        if (widget.dataPianoStr!.contains("T")) {
+          dataPiano = DateTime.parse(widget.dataPianoStr!);
+        } else {
+          dataPiano = DateFormat("yyyy-MM-dd").parse(widget.dataPianoStr!);
+        }
 
-        // Formattazione Giorno Settimana (Lunedì, Martedì...)
+        // Formattazione in Italiano
         String giornoSettimana = DateFormat(
           'EEEE',
           'it_IT',
         ).format(dataPiano).toUpperCase();
         String dataFormattata = DateFormat('dd/MM/yyyy').format(dataPiano);
 
-        _titoloGiorno = "ALLENAMENTO DI $giornoSettimana DEL $dataFormattata";
-        _dataInizioSottotitolo = "Allenamento iniziato il $dataFormattata";
+        setState(() {
+          _titoloGiorno = "ALLENAMENTO DI $giornoSettimana";
+          _dataInizioSottotitolo = "Sessione del $dataFormattata";
+        });
       } catch (e) {
-        _titoloGiorno = "SESSIONE DI ALLENAMENTO";
-        _dataInizioSottotitolo = "";
+        debugPrint("Errore parsing data in PianoX: $e");
+        setState(() {
+          _titoloGiorno = "SESSIONE DI ALLENAMENTO";
+          _dataInizioSottotitolo = "";
+        });
       }
     }
   }
@@ -94,59 +109,74 @@ class _AtletaPianoXViewState extends State<AtletaPianoXView> {
           onPressed: widget.vaiIndietro,
         ),
         title: const Text(
-          "SESSIONE ATTIVA",
+          "DETTAGLIO SESSIONE",
           style: TextStyle(
             color: Colors.black,
-            fontSize: 16,
+            fontSize: 14,
             fontWeight: FontWeight.w900,
+            letterSpacing: 1,
           ),
         ),
         centerTitle: true,
       ),
       body: Column(
         children: [
+          // HEADER CON DATA E GIORNO
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 15),
+            padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 20),
             decoration: BoxDecoration(
-              color: Colors.blue.shade50,
-              border: Border(bottom: BorderSide(color: Colors.blue.shade100)),
+              color: const Color(0xFFF8F9FA),
+              border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
             ),
             child: Column(
               children: [
                 Text(
                   _titoloGiorno,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.blue.shade700,
+                  style: const TextStyle(
+                    color: Colors.blueAccent,
                     fontWeight: FontWeight.w800,
-                    fontSize: 11,
-                    letterSpacing: 0.5,
+                    fontSize: 12,
+                    letterSpacing: 1.2,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   "SETTIMANA ${widget.settimana}",
                   style: const TextStyle(
-                    fontSize: 24,
+                    fontSize: 28,
                     fontWeight: FontWeight.w900,
                     color: Colors.black,
+                    letterSpacing: -0.5,
                   ),
                 ),
                 if (_dataInizioSottotitolo.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    _dataInizioSottotitolo,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.blueGrey.shade600,
-                      fontStyle: FontStyle.italic,
-                    ),
+                  const SizedBox(height: 6),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.calendar_today_outlined,
+                        size: 14,
+                        color: Colors.grey.shade600,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        _dataInizioSottotitolo,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey.shade600,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ],
             ),
           ),
+
           Expanded(
             child: _isLoading
                 ? const Center(
@@ -155,12 +185,10 @@ class _AtletaPianoXViewState extends State<AtletaPianoXView> {
                 : _esercizi.isEmpty
                 ? _buildEmptyState()
                 : ListView.builder(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
                     itemCount: _esercizi.length,
                     itemBuilder: (context, index) {
-                      final Map<String, dynamic> es = Map<String, dynamic>.from(
-                        _esercizi[index],
-                      );
+                      final es = Map<String, dynamic>.from(_esercizi[index]);
                       return _buildEsercizioCard(es, index);
                     },
                   ),
@@ -171,91 +199,89 @@ class _AtletaPianoXViewState extends State<AtletaPianoXView> {
   }
 
   Widget _buildEsercizioCard(Map<String, dynamic> es, int index) {
-    // Controllo se l'atleta ha inserito dati (pesi o note)
-    final String pesiSalvati = es['series_weights_atleta'] ?? "";
-    final String noteAtleta = es['note_atleta'] ?? "";
+    final String pesiSalvati = es['series_weights_atleta']?.toString() ?? "";
+    final String noteAtleta = es['athlete_notes']?.toString() ?? "";
 
-    // Il pulsante diventa verde se ci sono pesi inseriti o se la nota non è vuota
     final bool isCompletato =
-        pesiSalvati.split(',').any((v) => v.trim().isNotEmpty) ||
+        (pesiSalvati.isNotEmpty &&
+            pesiSalvati
+                .split(',')
+                .any((v) => v.trim().isNotEmpty && v != "-")) ||
         noteAtleta.trim().isNotEmpty;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 15),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isCompletato
-              ? Colors.green.shade300
-              : Colors.black.withOpacity(0.08),
+          color: isCompletato ? Colors.green.shade400 : Colors.grey.shade200,
           width: isCompletato ? 2 : 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 10,
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        title: RichText(
-          text: TextSpan(
-            style: const TextStyle(color: Colors.black, fontSize: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 12,
+        ),
+        title: Text(
+          es['exercise_name']?.toString().toUpperCase() ?? 'ESERCIZIO',
+          style: const TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 15,
+            letterSpacing: 0.3,
+          ),
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 6),
+          child: Row(
             children: [
-              TextSpan(
-                text: "${index + 1}) ",
+              const Icon(Icons.repeat, size: 14, color: Colors.blueGrey),
+              const SizedBox(width: 4),
+              Text(
+                "Target: ${es['sets_reps'] ?? '-'}",
                 style: const TextStyle(
-                  fontWeight: FontWeight.w900,
-                  color: Colors.blue,
+                  color: Colors.blueGrey,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
                 ),
-              ),
-              TextSpan(
-                text:
-                    es['exercise_name']?.toString().toUpperCase() ??
-                    'ESERCIZIO',
-                style: const TextStyle(fontWeight: FontWeight.w900),
               ),
             ],
           ),
         ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 4),
-          child: Text(
-            "Target: ${es['sets_reps'] ?? '-'}",
-            style: const TextStyle(
-              color: Colors.blueGrey,
-              fontWeight: FontWeight.w500,
-              fontSize: 13,
-            ),
-          ),
-        ),
-        trailing: SizedBox(
-          width: 90,
-          child: ElevatedButton(
-            onPressed: () async {
-              await widget.vaiADettaglioEsercizio(
-                _esercizi,
-                index,
-                widget.settimana,
-              );
+        trailing: ElevatedButton(
+          onPressed: () async {
+            // Chiamata alla funzione di navigazione e attesa del risultato
+            final result = await widget.vaiADettaglioEsercizio(
+              _esercizi,
+              index,
+              widget.settimana,
+            );
+
+            // Se l'utente ha cliccato "Termina" (che fa il pop(true)), ricarichiamo la lista
+            if (result == true || result == null) {
               _caricaEsercizi();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: isCompletato ? Colors.green : Colors.black,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              padding: EdgeInsets.zero,
+            }
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: isCompletato ? Colors.green : Colors.black,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Text(
-              isCompletato ? "MODIFICA" : "INIZIA",
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+          ),
+          child: Text(
+            isCompletato ? "MODIFICA" : "INIZIA",
+            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 11),
           ),
         ),
       ),
@@ -268,14 +294,18 @@ class _AtletaPianoXViewState extends State<AtletaPianoXView> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.assignment_late_outlined,
-            size: 50,
-            color: Colors.grey.shade300,
+            Icons.fitness_center_rounded,
+            size: 60,
+            color: Colors.grey.shade200,
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 16),
           const Text(
-            "Nessun esercizio trovato",
-            style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
+            "Nessun esercizio presente in questa sessione.",
+            style: TextStyle(
+              color: Colors.grey,
+              fontSize: 14,
+              fontStyle: FontStyle.italic,
+            ),
           ),
         ],
       ),

@@ -7,7 +7,8 @@ class AtletaHomeView extends StatefulWidget {
   final VoidCallback logout;
   final VoidCallback vaiAPianiPersonali;
   final VoidCallback vaiAProfilo;
-  final Function(Map<String, dynamic>, String, int) vaiAEsercizi;
+  final Function(Map<String, dynamic>, String, int, String)
+  vaiAEsercizi; // Aggiunto parametro data
 
   const AtletaHomeView({
     super.key,
@@ -61,6 +62,7 @@ class _AtletaHomeViewState extends State<AtletaHomeView> {
     DateTime oggiSenzaOra = DateTime(_oggi.year, _oggi.month, _oggi.day);
     Map<String, dynamic>? pianoTarget;
     int settimanaTarget = 1;
+    String dataTargetStr = oggiSenzaOra.toIso8601String();
     Duration minDiff = const Duration(days: 9999);
 
     for (var p in _pianiAtleta) {
@@ -76,12 +78,18 @@ class _AtletaHomeViewState extends State<AtletaHomeView> {
           minDiff = diff;
           pianoTarget = Map<String, dynamic>.from(p);
           settimanaTarget = i + 1;
+          dataTargetStr = dataSettimana.toIso8601String();
         }
       }
     }
 
     if (pianoTarget != null) {
-      widget.vaiAEsercizi(pianoTarget, widget.nome, settimanaTarget);
+      widget.vaiAEsercizi(
+        pianoTarget,
+        widget.nome,
+        settimanaTarget,
+        dataTargetStr,
+      );
     } else {
       _mostraMessaggio("Nessun allenamento futuro trovato.");
     }
@@ -113,7 +121,6 @@ class _AtletaHomeViewState extends State<AtletaHomeView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      // AppBar Rimosso per eliminare la barra fissa e l'ID
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: Colors.black))
           : RefreshIndicator(
@@ -125,9 +132,7 @@ class _AtletaHomeViewState extends State<AtletaHomeView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(
-                      height: 60,
-                    ), // Spazio extra per compensare l'assenza della barra
+                    const SizedBox(height: 60),
                     _buildHeader(),
                     const SizedBox(height: 35),
                     const Text(
@@ -334,6 +339,7 @@ class _AtletaHomeViewState extends State<AtletaHomeView> {
           allenamentiDelMese[d.day] = {
             "piano": Map<String, dynamic>.from(p),
             "settimana": i + 1,
+            "dataISO": d.toIso8601String(),
           };
         }
       }
@@ -373,6 +379,7 @@ class _AtletaHomeViewState extends State<AtletaHomeView> {
                   allenamentiDelMese[giorno]!['piano'],
                   widget.nome,
                   allenamentiDelMese[giorno]!['settimana'],
+                  allenamentiDelMese[giorno]!['dataISO'],
                 )
               : null,
           child: Container(

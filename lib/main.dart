@@ -172,8 +172,14 @@ class _MyAppState extends State<MyApp> {
           logout: _eseguiLogout,
           vaiAPianiPersonali: () => _navigaAPianiAtleta(userId, nome),
           vaiAProfilo: () => _navigaAProfiloAtleta(userId),
-          vaiAEsercizi: (piano, nomeA, sett) =>
-              _navigaAPianoX(piano, nomeA, sett),
+          vaiAEsercizi:
+              (piano, nomeA, sett, dataStr) => // Aggiunto dataStr
+              _navigaAPianoX(
+                piano,
+                nomeA,
+                sett,
+                dataStr,
+              ), // Aggiunto dataStr
         );
       }
     });
@@ -349,6 +355,7 @@ class _MyAppState extends State<MyApp> {
     Map<String, dynamic> piano,
     String nomeAtleta,
     int settimana,
+    String dataStr, // Aggiunto parametro
   ) async {
     await navigatorKey.currentState?.push(
       MaterialPageRoute(
@@ -356,7 +363,7 @@ class _MyAppState extends State<MyApp> {
           planId: piano['id'].toString(),
           settimana: settimana,
           nomeAtleta: nomeAtleta,
-          dataPianoStr: piano['start_date'] ?? '',
+          dataPianoStr: dataStr, // Usa dataStr passato dalla Home
           vaiIndietro: () => navigatorKey.currentState?.pop(),
           vaiADettaglioEsercizio: (lista, indice, sett) async {
             await _navigaAModificaDettaglioAtleta(lista, indice);

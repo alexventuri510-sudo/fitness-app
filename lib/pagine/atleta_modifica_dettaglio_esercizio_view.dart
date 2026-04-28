@@ -341,10 +341,9 @@ class _AtletaModificaDettaglioEsercizioViewState
 
                 const SizedBox(height: 30),
 
-                // NAVIGAZIONE AGGIORNATA
+                // NAVIGAZIONE
                 Row(
                   children: [
-                    // Tasto Precedente: compare solo se non è il primo esercizio
                     Expanded(
                       child: !isPrimo
                           ? ElevatedButton.icon(
@@ -370,15 +369,13 @@ class _AtletaModificaDettaglioEsercizioViewState
                             )
                           : const SizedBox.shrink(),
                     ),
-
                     if (!isPrimo && !isUltimo) const SizedBox(width: 15),
-
-                    // Tasto Successivo o Termina Allenamento
                     Expanded(
                       child: isUltimo
                           ? ElevatedButton.icon(
                               onPressed: () {
                                 _eseguiSalvataggio();
+                                // Torna indietro alla visualizzazione AtletaPianoXView
                                 Navigator.of(context).pop(true);
                               },
                               icon: const Icon(Icons.check_circle_outline),
